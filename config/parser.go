@@ -197,6 +197,10 @@ func (p *Parser) parseLines(lines []string) (err error) {
 			p.opts.watchdog = parseBool(value, defaultWatchdog)
 		case "INVIDIOUS_INSTANCE":
 			p.opts.invidiousInstance = parseString(value, defaultInvidiousInstance)
+		case "LISTENER_USER":
+			p.opts.listenerUser = parseString(value, defaultListenerUser)
+		case "LISTENER_GROUP":
+			p.opts.listenerGroup = parseString(value, defaultListenerGroup)
 		}
 	}
 

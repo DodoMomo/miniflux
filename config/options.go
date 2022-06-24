@@ -37,6 +37,8 @@ const (
 	defaultDatabaseMinConns                   = 1
 	defaultDatabaseConnectionLifetime         = 5
 	defaultListenAddr                         = "127.0.0.1:8080"
+	defaultListenerUser                       = ""
+	defaultListenerGroup                      = ""
 	defaultCertFile                           = ""
 	defaultKeyFile                            = ""
 	defaultCertDomain                         = ""
@@ -97,6 +99,8 @@ type Options struct {
 	databaseConnectionLifetime         int
 	runMigrations                      bool
 	listenAddr                         string
+	listenerUser                       string
+	listenerGroup                      string
 	certFile                           string
 	certDomain                         string
 	certKeyFile                        string
@@ -158,6 +162,8 @@ func NewOptions() *Options {
 		databaseConnectionLifetime:         defaultDatabaseConnectionLifetime,
 		runMigrations:                      defaultRunMigrations,
 		listenAddr:                         defaultListenAddr,
+		listenerUser:                       defaultListenerUser,
+		listenerGroup:                      defaultListenerGroup,
 		certFile:                           defaultCertFile,
 		certDomain:                         defaultCertDomain,
 		certKeyFile:                        defaultKeyFile,
@@ -174,6 +180,8 @@ func NewOptions() *Options {
 		pollingParsingErrorLimit:           defaultPollingParsingErrorLimit,
 		workerPoolSize:                     defaultWorkerPoolSize,
 		createAdmin:                        defaultCreateAdmin,
+		adminUsername:                      defaultAdminUsername,
+		adminPassword:                      defaultAdminPassword,
 		proxyImages:                        defaultProxyImages,
 		fetchYouTubeWatchTime:              defaultFetchYouTubeWatchTime,
 		oauth2UserCreationAllowed:          defaultOAuth2UserCreation,
@@ -490,6 +498,21 @@ func (o *Options) InvidiousInstance() string {
 	return o.invidiousInstance
 }
 
+func (o *Options) ListenerUser() string {
+	return o.listenerUser
+}
+
+
+func (o *Options) ListenerGroup() string {
+	return o.listenerGroup
+}
+
+
+func (o* Options) RestricSocketAccess() bool {
+	return o.listenerUser != "" || o.listenerGroup != ""
+}
+
+
 // SortedOptions returns options as a list of key value pairs, sorted by keys.
 func (o *Options) SortedOptions(redactSecret bool) []*Option {
 	var keyValues = map[string]interface{}{
@@ -526,6 +549,8 @@ func (o *Options) SortedOptions(redactSecret bool) []*Option {
 		"KEY_FILE":                               o.certKeyFile,
 		"INVIDIOUS_INSTANCE":                     o.invidiousInstance,
 		"LISTEN_ADDR":                            o.listenAddr,
+		"LISTENER_USER":                          o.listenerUser,
+		"LISTENER_GROUP":                         o.listenerGroup,
 		"LOG_DATE_TIME":                          o.logDateTime,
 		"MAINTENANCE_MESSAGE":                    o.maintenanceMessage,
 		"MAINTENANCE_MODE":                       o.maintenanceMode,

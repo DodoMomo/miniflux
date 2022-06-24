@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/user"
 	"strconv"
 	"strings"
 	"time"
@@ -86,11 +87,36 @@ func startUnixSocketServer(server *http.Server, socketFile string) {
 			logger.Fatal(`Server failed to start: %v`, err)
 		}
 		defer listener.Close()
-
-		if err := os.Chmod(sock, 0666); err != nil {
-			logger.Fatal(`Unable to change socket permission: %v`, err)
+		if config.Opts.RestricSocketAccess() {
+			if err := os.Chmod(sock, 0660); err != nil {
+				logger.Fatal(`Unable to change socket permission: %v`, err)
+			}
+			
+			userId := os.Getuid()
+			if config.Opts.ListenerUser() != "" {
+				listenerUser, err := user.Lookup(config.Opts.ListenerUser())
+				if (err != nil) {
+					logger.Fatal(`Failed to find UID for listener user: %v`, err)
+				}
+				userId, _ = strconv.Atoi(listenerUser.Uid)
+			}
+			
+			groupId := os.Getgid()
+			if config.Opts.ListenerGroup() != "" {
+				group, err := user.LookupGroup(config.Opts.ListenerGroup())
+				if (err != nil) {
+					logger.Fatal(`Failed to find GID for listener group: %v`, err)
+				}
+				groupId, _ = strconv.Atoi(group.Gid)
+			}
+			if err := os.Chown(sock, userId, groupId); err != nil {
+				logger.Fatal(`Failed to change socket file owner: %v`, err)
+			}
+		} else {
+			if err := os.Chmod(sock, 0666); err != nil {
+				logger.Fatal(`Unable to change socket permission: %v`, err)
+			}
 		}
-
 		logger.Info(`Listening on Unix socket %q`, sock)
 		if err := server.Serve(listener); err != http.ErrServerClosed {
 			logger.Fatal(`Server failed to start: %v`, err)
